@@ -12,6 +12,7 @@ public class GP_CameraManager : MonoBehaviour {
     public GameObject m_goBall;
     public float m_fMinimumSize;
     public float m_fPaddingPercent;
+    public float m_fSpeed;
     public int m_iFramesToReachGoal;
 
     private float m_fHorizontalBallDistanceFromOrigin;
@@ -19,6 +20,7 @@ public class GP_CameraManager : MonoBehaviour {
     private float m_fAspectRatio;
     private float m_fMaxZoomOutValue;
     private int m_iFramesSinceMove;
+    private Camera cameraComp;
     private CameraState state;
 
 	// Use this for initialization
@@ -27,22 +29,40 @@ public class GP_CameraManager : MonoBehaviour {
         m_iFramesSinceMove = 0;
         m_fMaxZoomOutValue = 0;
         state = CameraState.steady;
+        cameraComp = GetComponent<Camera>();
 	}
 	
 	// Update is called once per frame
-	void FixedUpdate () {
+	void LateUpdate () {
         //Horizontal distance is divided by the aspect ratio so that we can compare the two distances.
         m_fHorizontalBallDistanceFromOrigin = Mathf.Abs(m_goBall.transform.position.x) / m_fAspectRatio;
         m_fVerticalBallDistanceFromOrigin = Mathf.Abs(m_goBall.transform.position.y);
 
         float maxDistance = Mathf.Max(m_fHorizontalBallDistanceFromOrigin, m_fVerticalBallDistanceFromOrigin);
-        HandleCameraInterp(maxDistance);
+        //HandleCameraInterp(maxDistance);
+        HandleCameraInterp_simple(maxDistance);
 	}
 
     public void ResetCamera()
     {
         state = CameraState.steady;
-        GetComponent<Camera>().orthographicSize = m_fMinimumSize;
+        cameraComp.orthographicSize = m_fMinimumSize;
+    }
+
+    private void HandleCameraInterp_simple(float ballDistanceFromOrigin)
+    {
+        if (ballDistanceFromOrigin * (1 + m_fPaddingPercent) > cameraComp.orthographicSize )
+        {
+            cameraComp.orthographicSize += m_fSpeed * Time.deltaTime;
+            //cameraComp.orthographicSize = Mathf.Min(cameraComp.orthographicSize, ballDistanceFromOrigin * (1 + m_fPaddingPercent));
+        }
+
+        if (ballDistanceFromOrigin < cameraComp.orthographicSize )
+        {
+            cameraComp.orthographicSize -= m_fSpeed * Time.deltaTime;            
+        }
+
+        cameraComp.orthographicSize = Mathf.Max(cameraComp.orthographicSize, m_fMinimumSize);
     }
 
     private void HandleCameraInterp(float ballDistanceFromOrigin)
@@ -79,7 +99,9 @@ public class GP_CameraManager : MonoBehaviour {
                 {
                     state = CameraState.zoomingOut;
                     m_fMaxZoomOutValue = newMaxDistance;
-                    m_iFramesSinceMove = Mathf.RoundToInt(Mathf.InverseLerp(m_fMinimumSize, m_fMaxZoomOutValue, ballDistanceFromOrigin) * m_iFramesToReachGoal);
+                    //m_iFramesSinceMove = Mathf.RoundToInt(Mathf.InverseLerp(m_fMinimumSize, m_fMaxZoomOutValue, ballDistanceFromOrigin) * m_iFramesToReachGoal);
+                    //m_iFramesSinceMove = 0;
+                    m_iFramesSinceMove = Mathf.CeilToInt(Mathf.InverseLerp(m_fMinimumSize, m_fMinimumSize, ballDistanceFromOrigin) * m_iFramesToReachGoal);
                 }
                 else if( ballDistanceFromOrigin <= m_fMinimumSize && m_iFramesSinceMove >= m_iFramesToReachGoal)
                 {

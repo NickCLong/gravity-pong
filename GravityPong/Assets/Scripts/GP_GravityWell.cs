@@ -36,7 +36,6 @@ public class GP_GravityWell : MonoBehaviour {
             m_bIsActive = false;
         }
 
-        GetComponent<Renderer>().enabled = m_bIsActive;
         m_fGravitationalStrength = 40f;
 }
 	
@@ -53,7 +52,11 @@ public class GP_GravityWell : MonoBehaviour {
     public void ToggleGravityWellActive()
     {
         m_bIsActive = !m_bIsActive;
-        GetComponent<Renderer>().enabled = m_bIsActive;
+    }
+
+    public void SetGravityWellActive(bool _active)
+    {
+        m_bIsActive = _active;
     }
 
     public void SetGravitationalStrength(float ballVelocity)
@@ -75,5 +78,10 @@ public class GP_GravityWell : MonoBehaviour {
         }
 
         m_fGravitationalStrength = newStrength;
+    }
+
+    public bool IsGravityWellActive()
+    {
+        return m_bIsActive;
     }
 }

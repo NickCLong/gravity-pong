@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System;
 
 public class GP_Paddle : MonoBehaviour {
     public enum PaddleState
@@ -48,76 +49,101 @@ public class GP_Paddle : MonoBehaviour {
 	
 	// Update is called once per frame
 	void FixedUpdate () {
-        switch(m_ePaddleState)
+        //switch(m_ePaddleState)
+        //{
+        //    case PaddleState.chargingSuper:
+        //        if( m_bHeldThisFrame && m_bAbleToSuper)
+        //        {
+        //            float t = (float)++m_iSuperFrameCounter / (float)m_iWarmUpSlowDownFrames;
+        //            t = Mathf.Min(t, 1f);
+        //            m_fRadialVelocity = Mathf.SmoothStep(m_fVelocityCache, 0f, t);
+        //            if( m_iSuperFrameCounter >= m_iWarmUpSuperFrames)
+        //            {
+        //                m_bSuperIsCharged = true;
+        //            }
+        //        }
+        //        else
+        //        {
+        //            TransitionToState(PaddleState.normal);
+        //        }
+        //        break;
+        //    case PaddleState.activeSuper:
+        //        if( ++m_iSuperFrameCounter >= m_iActiveSuperFrames)
+        //        {
+        //            TransitionToState(PaddleState.cooldownSuper);
+        //            m_bAbleToSuper = false;
+        //        }
+        //        break;
+        //    case PaddleState.cooldownSuper:
+        //        float t1 = (float)++m_iSuperFrameCounter / (float)m_iCoolDownSuperFrames;
+        //        m_fRadialVelocity = Mathf.SmoothStep(m_fVelocityCache, 0f, t1);
+        //        if( m_iSuperFrameCounter >= m_iCoolDownSuperFrames )
+        //        {
+        //            TransitionToState(PaddleState.normal);
+        //        }
+        //        break;
+        //    case PaddleState.normal:
+        //    default:
+        //        m_fRadialVelocity += m_fRadialAcceleration;
+        //        if (m_fRadialVelocity < 0)
+        //        {
+        //            m_fRadialVelocity = -Mathf.Min(Mathf.Abs(m_fRadialVelocity), m_fMaxRadialVelocity);
+        //        }
+        //        else
+        //        {
+        //            m_fRadialVelocity = Mathf.Min(m_fRadialVelocity, m_fMaxRadialVelocity);
+        //        }
+        //        break;
+        //}
+
+        m_fRadialVelocity += m_fRadialAcceleration;
+        if (m_fRadialVelocity < 0)
         {
-            case PaddleState.chargingSuper:
-                if( m_bHeldThisFrame && m_bAbleToSuper)
-                {
-                    float t = (float)++m_iSuperFrameCounter / (float)m_iWarmUpSlowDownFrames;
-                    t = Mathf.Min(t, 1f);
-                    m_fRadialVelocity = Mathf.SmoothStep(m_fVelocityCache, 0f, t);
-                    if( m_iSuperFrameCounter >= m_iWarmUpSuperFrames)
-                    {
-                        m_bSuperIsCharged = true;
-                    }
-                }
-                else
-                {
-                    TransitionToState(PaddleState.normal);
-                }
-                break;
-            case PaddleState.activeSuper:
-                if( ++m_iSuperFrameCounter >= m_iActiveSuperFrames)
-                {
-                    TransitionToState(PaddleState.cooldownSuper);
-                    m_bAbleToSuper = false;
-                }
-                break;
-            case PaddleState.cooldownSuper:
-                float t1 = (float)++m_iSuperFrameCounter / (float)m_iCoolDownSuperFrames;
-                m_fRadialVelocity = Mathf.SmoothStep(m_fVelocityCache, 0f, t1);
-                if( m_iSuperFrameCounter >= m_iCoolDownSuperFrames )
-                {
-                    TransitionToState(PaddleState.normal);
-                }
-                break;
-            case PaddleState.normal:
-            default:
-                m_fRadialVelocity += m_fRadialAcceleration;
-                if (m_fRadialVelocity < 0)
-                {
-                    m_fRadialVelocity = -Mathf.Min(Mathf.Abs(m_fRadialVelocity), m_fMaxRadialVelocity);
-                }
-                else
-                {
-                    m_fRadialVelocity = Mathf.Min(m_fRadialVelocity, m_fMaxRadialVelocity);
-                }
-                break;
+            m_fRadialVelocity = -Mathf.Min(Mathf.Abs(m_fRadialVelocity), m_fMaxRadialVelocity);
+        }
+        else
+        {
+            m_fRadialVelocity = Mathf.Min(m_fRadialVelocity, m_fMaxRadialVelocity);
         }
 
-        transform.eulerAngles = new Vector3(0f, 0f, Mathf.LerpAngle(transform.eulerAngles.z, transform.eulerAngles.z + m_fRadialVelocity, 1f));
+        //transform.eulerAngles = new Vector3(0f, 0f, Mathf.LerpAngle(transform.eulerAngles.z, transform.eulerAngles.z + m_fRadialVelocity, 1f));
+        //transform.eulerAngles = new Vector3(0f, 0f, transform.eulerAngles.z + Mathf.DeltaAngle(transform.eulerAngles.z, +transform.eulerAngles.z + m_fRadialVelocity));
+        transform.Rotate(new Vector3(0f, 0f, m_fRadialVelocity));
+        //transform.eulerAngles = new Vector3(0f, 0f, NormalizeAngleBetween0and360(transform.eulerAngles.z));
         transform.localPosition =
             new Vector3(m_fDistanceFromGoal * Mathf.Cos(transform.eulerAngles.z * Mathf.Deg2Rad),
                         m_fDistanceFromGoal * Mathf.Sin(transform.eulerAngles.z * Mathf.Deg2Rad),
                         0f);
     }
 
+    private float NormalizeAngleBetween0and360(float rotation)
+    {
+        float result = rotation;
+        result = result % 360;
+        if (result < 0) result += 360f;
+
+        return result;
+    }
+
     public void OnTouchInputReceived()
     {
-        switch (m_ePaddleState)
-        {
-            case PaddleState.chargingSuper:
-                break;
-            case PaddleState.activeSuper:
-                break;
-            case PaddleState.cooldownSuper:
-                break;
-            case PaddleState.normal:
-            default:
-                m_fRadialVelocity = 0f;
-                m_fRadialAcceleration = -m_fRadialAcceleration;
-                break;
-        }
+        //switch (m_ePaddleState)
+        //{
+        //    case PaddleState.chargingSuper:
+        //        break;
+        //    case PaddleState.activeSuper:
+        //        break;
+        //    case PaddleState.cooldownSuper:
+        //        break;
+        //    case PaddleState.normal:
+        //    default:
+        //        break;
+        //}
+
+        m_fRadialVelocity = 0f;
+        m_fRadialAcceleration = -m_fRadialAcceleration;
+
+        //Debug.Log("Input received at " + DateTime.Now.ToLongTimeString());
     }
 
     public void OnHoldReceived()
